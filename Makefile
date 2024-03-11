@@ -1,7 +1,7 @@
 include .env
 
 migration_source ?= "file://db/migrations"
-migration_destination ?= "postgres://$(PG_USER):$(PG_PASSWORD)@$(PG_HOST):$(PG_PORT)/$(PG_DATABASE)?sslmode=disable"
+migration_destination ?= "postgres://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable"
 
 # Takes the first target as command
 Command := $(firstword $(MAKECMDGOALS))
