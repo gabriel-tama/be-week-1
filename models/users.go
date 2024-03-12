@@ -28,14 +28,14 @@ func NewUserModel(db *pgx.Conn) *UserModel {
 
 func (um *UserModel) Create(username, name, password string) (*User,error) {
     // Check if the username already exists
-    exists, err := um.FindExistByUsername(username)
-    if err != nil {
-        return nil,errors.New("something went wrong")
-    }
+    // exists, err := um.FindExistByUsername(username)
+    // if err != nil {
+    //     return nil,errors.New("something went wrong")
+    // }
 
-    if exists {
-        return nil,errors.New("username already exist")
-    }
+    // if exists {
+    //     return nil,errors.New("username already exist")
+    // }
 
     // Hash the password
     hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -70,9 +70,6 @@ func (um *UserModel) FindUserByUsername(username string) (*User,error){
     var storedPassword,name string
 	err := um.db.QueryRow(context.Background(), "SELECT name,password FROM users WHERE username = $1", username).Scan(&name,&storedPassword)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil,err
-		}
 		return nil,err
 	}
     user := &User{
