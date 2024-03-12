@@ -1,10 +1,21 @@
 package main
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/gin-gonic/gin"
+
+	"example.com/shopifyx/config"
 )
 
 func main() {
+
+	confVars, configErr := config.Get()
+
+	if configErr != nil {
+		log.Fatal(configErr)
+	}
 
 	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {
@@ -12,5 +23,6 @@ func main() {
 			"message": "pong",
 		})
 	})
-	r.Run()
+
+	r.Run(fmt.Sprintf("%s:%s", confVars.Host, confVars.Port))
 }

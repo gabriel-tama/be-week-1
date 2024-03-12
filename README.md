@@ -38,14 +38,26 @@ make docker-up
 
 Tools untuk migrasi database, dengan menggunakan [migrate](https://github.com/golang-migrate/migrate/tree/master) dan `makefile`. Untuk migrasi database dengan perintah dibawah ini, nanti file sql akan ada di folder `db/migrations`.
 
-### create migration
+#### create migration
 
 ```bash
 make migrate-create filename.sql
 ```
 
-### run migration
+#### run migration
 
 ```bash
 make migrate-up
+```
+
+### Optional
+
+#### Hot Reload
+
+Kita bisa pake `air` untuk hot reload, dengan perintah dibawah ini.
+
+```bash
+go install github.com/cosmtrek/air@latest
+alias air='$(go env GOPATH)/bin/air'
+air
 ```
