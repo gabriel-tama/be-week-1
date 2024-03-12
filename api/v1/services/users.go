@@ -3,10 +3,7 @@
 package services
 
 import (
-	"errors"
-
 	"github.com/gabriel-tama/be-week-1/models"
-	"golang.org/x/crypto/bcrypt"
 )
 
 
@@ -14,7 +11,8 @@ import (
 
 type UserService interface {
     Register(username, name, password string) (*models.User, error)
-    Authenticate(username, password string) (*models.User, error)
+    CheckUserExists(username string)(bool,error)
+    GetUserExist(username string)(*models.User,error)
 }
 
 type userServiceImpl struct {
@@ -35,16 +33,23 @@ func (us *userServiceImpl) Register(username, name, password string) (*models.Us
     return user, nil
 }
 
-func (us *userServiceImpl) Authenticate(username, password string) (*models.User, error) {
+
+
+func (us *userServiceImpl) CheckUserExists(username string) (bool, error) {
+    exist, err := us.userModel.FindExistByUsername(username)
+    if err != nil {
+        return false, err
+    }
+    
+
+    return exist, nil
+}
+
+func (us *userServiceImpl) GetUserExist(username string) (*models.User, error) {
     user, err := us.userModel.FindUserByUsername(username)
     if err != nil {
         return nil, err
     }
-        // Compare passwords
-    if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-        return nil, errors.New("invalid username/password")
-    }
-
-
     return user, nil
 }
+
