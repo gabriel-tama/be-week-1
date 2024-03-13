@@ -20,6 +20,9 @@ type Config struct {
 	S3Bucket string
 	S3Secret string
 	S3ID     string
+
+	JWTSecret   string
+	BCRYPT_Salt string
 }
 
 func Get() (*Config, error) {
@@ -35,7 +38,7 @@ func Get() (*Config, error) {
 		Host:       os.Getenv("HOST"),
 		DBHost:     os.Getenv("DB_HOST"),
 		DBPort:     os.Getenv("DB_PORT"),
-		DBUser:     os.Getenv("DB_USER"),
+		DBUser:     os.Getenv("DB_USERNAME"),
 		DBName:     os.Getenv("DB_NAME"),
 		DBPassword: os.Getenv("DB_PASSWORD"),
 		S3Bucket:   os.Getenv("S3_BUCKET"),

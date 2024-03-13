@@ -3,20 +3,48 @@
 package routes
 
 import (
+	"log"
+	"time"
+
+	"github.com/fatih/color"
 	"github.com/gabriel-tama/be-week-1/api/v1/controllers"
 	"github.com/gin-gonic/gin"
+
+	"go.uber.org/ratelimit"
 )
 
+var (
+	limit ratelimit.Limiter
+)
+
+func leakBucket() gin.HandlerFunc {
+	prev := time.Now()
+	return func(ctx *gin.Context) {
+		now := limit.Take()
+		log.Print(color.CyanString("%v", now.Sub(prev)))
+		prev = now
+	}
+}
+
 func SetupRouter(userController *controllers.UserController) *gin.Engine {
-    router := gin.Default()
+	limit = ratelimit.New(100)
 
-    // Setup API version 1 routes
-    v1 := router.Group("/api/v1")
-    {
+	router := gin.Default()
 
-        // Setup user routes
-        SetupUserRoutes(v1, userController)
-    }
+	router.Use(leakBucket())
+	router.SetTrustedProxies([]string{"::1"}) // This is for reverse proxy
 
-    return router
+	// Setup API version 1 routes
+	v1 := router.Group("/api/v1")
+	{
+
+		// Setup user routes
+		SetupUserRoutes(v1, userController)
+	}
+
+	router.GET("/rate", func(ctx *gin.Context) {
+		ctx.JSON(200, "rate limiting test")
+	})
+
+	return router
 }

@@ -15,90 +15,87 @@ import (
 )
 
 type UserController struct {
-    userService services.UserService
-    jwtService  services.JWTService
+	userService services.UserService
+	jwtService  services.JWTService
 }
 
-
-func NewUserController(userService services.UserService,jwtService services.JWTService) *UserController {
-    return &UserController{userService: userService,jwtService: jwtService}
+func NewUserController(userService services.UserService, jwtService services.JWTService) *UserController {
+	return &UserController{userService: userService, jwtService: jwtService}
 }
 
 func (uc *UserController) Register(c *gin.Context) {
-    var user types.RegisterData
-    if err := c.ShouldBindJSON(&user); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"message": "name /password / username is too short or long"})
-        return
-    }
+	var user types.RegisterData
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "name /password / username is too short or long"})
+		return
+	}
 
-    exist,err := uc.userService.CheckUserExists(user.Username)
+	exist, err := uc.userService.CheckUserExists(user.Username)
 
-    if err!=nil{
-         c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
-        return
-    }
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+		return
+	}
 
-    if exist{
-        c.JSON(http.StatusConflict, gin.H{"message": "user already exist"})
-        return
-    }
+	if exist {
+		c.JSON(http.StatusConflict, gin.H{"message": "user already exist"})
+		return
+	}
 
-    data,err := uc.userService.Register(user.Username,user.Name,user.Password)
-   
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
-        return
-    }
+	data, err := uc.userService.Register(user.Username, user.Name, user.Password)
 
-    tokenString,err:= uc.jwtService.CreateToken(user.Username)
-    if err !=nil{
-        c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
-    }
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+		return
+	}
 
-    authResponse := types.AuthResponse{
-        Username: data.Username,
-        Name: data.Name,
-        AccessToken: tokenString,
-    }
+	tokenString, err := uc.jwtService.CreateToken(user.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+	}
 
-    c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully","data":authResponse})
+	authResponse := types.AuthResponse{
+		Username:    data.Username,
+		Name:        data.Name,
+		AccessToken: tokenString,
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully", "data": authResponse})
 }
 
 func (uc *UserController) Login(c *gin.Context) {
-    var loginData types.LoginData
-    if err := c.ShouldBindJSON(&loginData); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"message": "password / username is too short or long"})
-        return
-    }
+	var loginData types.LoginData
+	if err := c.ShouldBindJSON(&loginData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "password / username is too short or long"})
+		return
+	}
 
-     data,err := uc.userService.GetUserExist(loginData.Username)
-    
-     if err != nil {
-        if errors.Is(err, pgx.ErrNoRows) {
-            c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
-            return 
+	data, err := uc.userService.GetUserExist(loginData.Username)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
+			return
 		}
-        c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
-        return
-    }
-    fmt.Println(data.Password)
-    if err := bcrypt.CompareHashAndPassword([]byte(data.Password), []byte(loginData.Password)); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"message": "wrong password"})
-        return 
-    }
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+		return
+	}
+	fmt.Println(data.Password)
+	if err := bcrypt.CompareHashAndPassword([]byte(data.Password), []byte(loginData.Password)); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "wrong password"})
+		return
+	}
 
-    
+	tokenString, err := uc.jwtService.CreateToken(loginData.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+	}
 
-    tokenString,err:= uc.jwtService.CreateToken(loginData.Username)
-    if err !=nil{
-        c.JSON(http.StatusInternalServerError, gin.H{"message":"server error"})
-    }
+	authResponse := types.AuthResponse{
+		Username:    data.Username,
+		Name:        data.Name,
+		AccessToken: tokenString,
+	}
 
-    authResponse := types.AuthResponse{
-        Username: data.Username,
-        Name: data.Name,
-        AccessToken: tokenString,
-    }
-
-    c.JSON(http.StatusOK, gin.H{"message": "Login successful","data":authResponse})
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "data": authResponse})
 }
