@@ -8,10 +8,12 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gabriel-tama/be-week-1/api/v1/controllers"
+	"github.com/gabriel-tama/be-week-1/api/v1/services"
 	"github.com/gin-gonic/gin"
 
 	"go.uber.org/ratelimit"
 )
+
 
 var (
 	limit ratelimit.Limiter
@@ -26,7 +28,7 @@ func leakBucket() gin.HandlerFunc {
 	}
 }
 
-func SetupRouter(userController *controllers.UserController) *gin.Engine {
+func SetupRouter(userController *controllers.UserController,bankController *controllers.BankController, jwtService *services.JWTService) *gin.Engine {
 	limit = ratelimit.New(100)
 
 	router := gin.Default()
@@ -38,10 +40,11 @@ func SetupRouter(userController *controllers.UserController) *gin.Engine {
 	v1 := router.Group("/api/v1")
 	{
 
-		// Setup user routes
-		SetupUserRoutes(v1, userController)
-	}
 
+        // Setup user routes
+        SetupUserRoutes(v1, userController)
+        SetupBankRoutes(v1, bankController,jwtService)
+    }
 	router.GET("/rate", func(ctx *gin.Context) {
 		ctx.JSON(200, "rate limiting test")
 	})
