@@ -34,16 +34,19 @@ func main() {
 
 
 	userModel := models.NewUserModel(conn)
+	bankModel := models.NewBankAccountModel(conn)
 
     // Initialize services
     userService := services.NewUserService(userModel)
+	bankService := services.NewBankService(bankModel)
 	jwtService := services.NewJWTService(secretKey)
 
     // Initialize controllers
     userController := controllers.NewUserController(userService,jwtService)
+	bankController := controllers.NewBankController(bankService)
 
     // Setup Gin router
-    router := routes.SetupRouter(userController)
+    router := routes.SetupRouter(userController,bankController,&jwtService)
 
     // Start the server
     if err := router.Run(":5000"); err != nil {
