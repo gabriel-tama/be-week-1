@@ -1,0 +1,3 @@
+DELETE TABLE IF EXISTS "product_tags";
+
+DELETE TABLE IF EXISTS "product";
