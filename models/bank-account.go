@@ -2,13 +2,14 @@ package models
 
 import (
 	"context"
+	"log"
 
 	"github.com/jackc/pgx/v5"
 )
 
 type BankAccount struct {
-	BankAccountId     uint
-	UserId            uint
+	BankAccountId     string
+	// UserId            uint
 	BankName          string
 	BankAccountName   string
 	BankAccountNumber string
@@ -40,4 +41,35 @@ func (bm *BankAccountModel) Create(user_id int, bank_name, account_name, account
 
 }
 
-// func (bm *BankAccountModel) FindByUserID(user_id int) (*BankAccount,error)
+func (bm *BankAccountModel) FindByUserId(user_id int) ([]BankAccount,error){
+	var banks []BankAccount
+
+	rows,err := bm.db.Query(context.Background(), "SELECT account_id,bank_name,account_name,account_number FROM bankaccounts WHERE user_id= $1",user_id)
+	if err != nil {
+		log.Fatal(err)
+        return nil, err
+    }
+    defer rows.Close()
+
+
+    for rows.Next() {
+        var bank BankAccount
+        err := rows.Scan(&bank.BankAccountId,&bank.BankName, &bank.BankAccountName, &bank.BankAccountNumber)
+        if err != nil {
+            return nil, err
+        }
+        banks = append(banks, bank)
+    }
+    if err := rows.Err(); err != nil {
+        return nil, err
+    }
+	return banks,nil
+}
+
+func (bm *BankAccountModel) Delete(acc_id int,user_id int)(error){
+	_, err := bm.db.Exec(context.Background(), "DELETE FROM bankaccounts WHERE user_id=$1 AND acc_id=$2",user_id,acc_id)
+    if err != nil {
+        return err
+    }
+	return nil
+}

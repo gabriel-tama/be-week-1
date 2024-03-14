@@ -9,7 +9,7 @@ import (
 
 
 type JWTService interface {
-    CreateToken(username string) (string, error)
+    CreateToken(user_id int) (string, error)
     ValidateToken(tokenString string) (*jwt.Token,error)
 }
 
@@ -21,10 +21,10 @@ func NewJWTService(secretKey string) JWTService {
     return &jwtServiceImpl{secretKey: []byte(secretKey)}
 }
 
-func (jwtService *jwtServiceImpl) CreateToken(username string) (string, error) {
+func (jwtService *jwtServiceImpl) CreateToken(user_id int) (string, error) {
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-        "username": username,
-        "exp":      time.Now().Add(time.Hour * 24).Unix(),
+        "user_id": user_id,
+        "exp":      time.Now().Add(time.Minute * 2).Unix(),
     })
 
     tokenString, err := token.SignedString(jwtService.secretKey)

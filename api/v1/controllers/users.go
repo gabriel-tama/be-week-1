@@ -11,6 +11,7 @@ import (
 	"github.com/gabriel-tama/be-week-1/types"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,26 +31,23 @@ func (uc *UserController) Register(c *gin.Context) {
 		return
 	}
 
-	exist, err := uc.userService.CheckUserExists(user.Username)
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
-		return
-	}
-
-	if exist {
-		c.JSON(http.StatusConflict, gin.H{"message": "user already exist"})
-		return
-	}
 
 	data, err := uc.userService.Register(user.Username, user.Name, user.Password)
 
 	if err != nil {
+        fmt.Println(err)
+          var pgErr *pgconn.PgError
+
+        if errors.As(err,&pgErr) && pgErr.Code=="23505" {
+            	c.JSON(http.StatusConflict, gin.H{"message": "user already exist"})
+		        return
+        }
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
 		return
 	}
 
-	tokenString, err := uc.jwtService.CreateToken(user.Username)
+	tokenString, err := uc.jwtService.CreateToken(int(data.ID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
 	}
@@ -80,13 +78,12 @@ func (uc *UserController) Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
 		return
 	}
-	fmt.Println(data.Password)
 	if err := bcrypt.CompareHashAndPassword([]byte(data.Password), []byte(loginData.Password)); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "wrong password"})
 		return
 	}
 
-	tokenString, err := uc.jwtService.CreateToken(loginData.Username)
+	tokenString, err := uc.jwtService.CreateToken(int(data.ID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
 	}
