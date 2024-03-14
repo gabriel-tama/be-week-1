@@ -11,6 +11,7 @@ import (
 type JWTService interface {
     CreateToken(user_id int) (string, error)
     ValidateToken(tokenString string) (*jwt.Token,error)
+	GetUserIDByToken(tokenString string) (string,error)
 }
 
 type jwtServiceImpl struct {
@@ -43,4 +44,14 @@ func (jwtService *jwtServiceImpl) ValidateToken(tokenString string) (*jwt.Token,
 		}
 		return []byte(jwtService.secretKey), nil
 	})
+}
+
+func (jwtService  *jwtServiceImpl) GetUserIDByToken(tokenString string)(string,error){
+	aToken, err := jwtService.ValidateToken(tokenString)
+	if err != nil {
+		// panic(err.Error())
+		return "",err
+	}
+	claims := aToken.Claims.(jwt.MapClaims)
+	return fmt.Sprintf("%v", claims["user_id"]),nil
 }

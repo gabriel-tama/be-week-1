@@ -64,6 +64,7 @@ func (bc *BankController) CreateBankAccount (c *gin.Context){
 	
 	if err!=nil{
 		c.JSON(http.StatusInternalServerError,gin.H{"message":err})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message":"account added sucessfully","data": bank})
