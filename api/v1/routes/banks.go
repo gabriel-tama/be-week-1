@@ -16,6 +16,7 @@ func SetupBankRoutes(router *gin.RouterGroup, bankController *controllers.BankCo
 		bankRouter.POST("/account", bankController.CreateBankAccount)
 		bankRouter.GET("/account", bankController.GetBankAccount)
 		bankRouter.DELETE("/account/:bankAccountId",bankController.DeleteBankAccount)
+		bankRouter.PATCH("/account/:bankAccountId",bankController.UpdateBankInfo)
 
 	}
 }

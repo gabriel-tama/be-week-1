@@ -6,7 +6,8 @@ type BankService interface {
 	CheckInBank() error
 	CreateBankAccount(userId int, bankName, bankAccountName, bankAccountNumber string)(*models.BankAccount, error)
 	GetBankAccount(userId int)([]*models.BankAccount , error)
-	DeleteBankAccount(acc_id, user_id int)(error)
+	DeleteBankAccount(acc_id, user_id int)(bool,error)
+	UpdateBankAccount(acc_id,user_id int, bankName string ,bankAccountName string, bankAccountNumber string)(bool,error)
 }
 
 type bankServiceImpl struct {
@@ -42,12 +43,21 @@ func (bs *bankServiceImpl) GetBankAccount(userId int)([]*models.BankAccount,erro
 	return bankPtrs,nil
 }
 
-func (bs *bankServiceImpl) DeleteBankAccount(acc_id,user_id int)(error){
+func (bs *bankServiceImpl) DeleteBankAccount(acc_id,user_id int)(bool,error){
 
-	err:=bs.bankAccountModel.Delete(acc_id,user_id)
+	exists, err:=bs.bankAccountModel.Delete(acc_id,user_id)
 	if err!=nil{
-		return err
+		return false,err
 	}
-	return nil
+	return exists,nil
+}
+
+func (bs *bankServiceImpl) UpdateBankAccount(acc_id,user_id int, bankName string ,bankAccountName string, bankAccountNumber string)(bool,error){
+
+	exists, err:=bs.bankAccountModel.Update(acc_id,user_id,bankName,bankAccountName,bankAccountNumber)
+	if err!=nil{
+		return false,err
+	}
+	return exists,nil
 }
 

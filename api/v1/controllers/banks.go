@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -10,7 +9,6 @@ import (
 	"github.com/gabriel-tama/be-week-1/types"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/jackc/pgx/v5"
 )
 
 type BankController struct {
@@ -131,18 +129,62 @@ func (bc *BankController) DeleteBankAccount(c *gin.Context){
 
 	convertedUserID, err := strconv.ParseUint(userID, 10, 64)
 	if err!=nil{
+		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
 		return
 	}
 
-	err= bc.bankService.DeleteBankAccount(acc_id,int(convertedUserID))
+	isDeleted,err:= bc.bankService.DeleteBankAccount(acc_id,int(convertedUserID))
 
-	if err!=nil{
-		if errors.Is(err,pgx.ErrNoRows){
+	if err!=nil{		
+		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
+		return
+	}
+	if isDeleted==false{
 		c.JSON(http.StatusNotFound,gin.H{"message":"account not found"})
 		return
-		}
-		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
 	}
 	c.JSON(http.StatusOK,gin.H{"message":"account deleted successfully"})
 }
+
+func (bc *BankController) UpdateBankInfo(c *gin.Context){
+	var updateBankData types.RegisterBankData
+	acc_id, err := strconv.Atoi(c.Param("bankAccountId"))
+	if err != nil {
+		// If the parameter cannot be converted to an integer, return a Bad Request response
+		c.JSON(http.StatusNotFound, gin.H{"message": "account request"})
+		return
+	}
+	
+	
+	authHeader := c.GetHeader("Authorization")
+
+	const BEARER_SCHEMA = "BEARER "
+	
+	tokenString:= authHeader[len(BEARER_SCHEMA):]
+	
+	userID := bc.GetUserIDByToken(tokenString)
+
+	convertedUserID, err := strconv.ParseUint(userID, 10, 64)
+	if err!=nil{
+		fmt.Println(err)
+
+		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
+		return
+	}
+
+	exists,err:= bc.bankService.UpdateBankAccount(acc_id,int(convertedUserID),updateBankData.BankName,updateBankData.BankAccountName,updateBankData.BankAccountNumber)
+
+	if err!=nil{		
+		fmt.Println(err)
+
+		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
+		return
+	}
+	if !exists{
+		c.JSON(http.StatusNotFound,gin.H{"message":"account not found"})
+		return
+	}
+	c.JSON(http.StatusOK,gin.H{"message":"account updated successfully"})
+}
+	

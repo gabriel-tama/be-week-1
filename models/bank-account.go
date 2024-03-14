@@ -66,10 +66,29 @@ func (bm *BankAccountModel) FindByUserId(user_id int) ([]BankAccount,error){
 	return banks,nil
 }
 
-func (bm *BankAccountModel) Delete(acc_id int,user_id int)(error){
-	_, err := bm.db.Exec(context.Background(), "DELETE FROM bankaccounts WHERE user_id=$1 AND acc_id=$2",user_id,acc_id)
+func (bm *BankAccountModel) Delete(acc_id int,user_id int)(bool,error){
+	result, err := bm.db.Exec(context.Background(), "DELETE FROM bankaccounts WHERE user_id=$1 AND account_id=$2",user_id,acc_id)
     if err != nil {
-        return err
+        return false, err
     }
-	return nil
+
+	rowsAffected := result.RowsAffected()
+    if rowsAffected == 0 {
+        return false,nil
+    }
+	return true,nil
+}
+
+
+func (bm *BankAccountModel) Update(acc_id int, user_id int, bankName string, bankAccountName string, bankAccountNumber string)(bool,error){
+	result,err := bm.db.Exec(context.Background(),"UPDATE bankaccounts SET bank_name = $1, account_name=$2, account_number=$3 WHERE user_id=$4 AND account_id=$5",bankName,bankAccountName,bankAccountNumber,user_id,acc_id)
+	if err != nil {
+        return false, err
+    }
+
+	rowsAffected := result.RowsAffected()
+    if rowsAffected == 0 {
+        return false,nil
+    }
+	return true,nil
 }
