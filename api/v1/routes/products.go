@@ -13,6 +13,7 @@ func SetupProductRoutes(router *gin.RouterGroup, productController *controllers.
 
 	{
 		productRouter.POST("/",productController.CreateProduct)
+		productRouter.PATCH("/:productId",productController.UpdateProduct)
 	}
 	
 }

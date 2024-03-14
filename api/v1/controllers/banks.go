@@ -141,7 +141,7 @@ func (bc *BankController) DeleteBankAccount(c *gin.Context){
 		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
 		return
 	}
-	if isDeleted==false{
+	if !isDeleted{
 		c.JSON(http.StatusNotFound,gin.H{"message":"account not found"})
 		return
 	}
@@ -153,7 +153,7 @@ func (bc *BankController) UpdateBankInfo(c *gin.Context){
 	acc_id, err := strconv.Atoi(c.Param("bankAccountId"))
 	if err != nil {
 		// If the parameter cannot be converted to an integer, return a Bad Request response
-		c.JSON(http.StatusNotFound, gin.H{"message": "account request"})
+		c.JSON(http.StatusNotFound, gin.H{"message": "account not found"})
 		return
 	}
 	

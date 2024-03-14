@@ -7,6 +7,9 @@ import (
 
 type ProductService interface {
 	Create(user_id int, product types.ProductCreate)(error)
+	Update(user_id int, productId int, product types.ProductCreate)(bool,error)
+	Delete(user_id int, productId int)(bool,error)
+
 }
 
 type productServiceImpl struct {
@@ -24,6 +27,21 @@ func (ps *productServiceImpl) Create(user_id int, product types.ProductCreate)  
         return err
     }
 
-
     return nil
+}
+
+func (ps *productServiceImpl) Update(user_id int, productId int , product types.ProductCreate)(bool ,error){
+	exist, err:= ps.productModel.Update(user_id,productId,product)
+	if err!=nil{
+		return false, err
+	}
+	return exist,nil
+}
+
+func (ps *productServiceImpl) Delete(user_id int, productId int )(bool ,error){
+	exist, err:= ps.productModel.Delete(user_id,productId)
+	if err!=nil{
+		return false, err
+	}
+	return exist,nil
 }
