@@ -34,16 +34,18 @@ func Get() (*Config, error) {
 	}
 
 	Conf = &Config{
-		Port:       os.Getenv("PORT"),
-		Host:       os.Getenv("HOST"),
+		Port: os.Getenv("PORT"),
+		Host: os.Getenv("HOST"),
+
 		DBHost:     os.Getenv("DB_HOST"),
 		DBPort:     os.Getenv("DB_PORT"),
 		DBUser:     os.Getenv("DB_USERNAME"),
 		DBName:     os.Getenv("DB_NAME"),
 		DBPassword: os.Getenv("DB_PASSWORD"),
-		S3Bucket:   os.Getenv("S3_BUCKET"),
-		S3Secret:   os.Getenv("SECRET_KEY"),
-		S3ID:       os.Getenv("S3_ID"),
+
+		S3Bucket: os.Getenv("S3_BUCKET_NAME"),
+		S3Secret: os.Getenv("S3_SECRET_KEY"),
+		S3ID:     os.Getenv("S3_ID"),
 	}
 
 	return Conf, nil

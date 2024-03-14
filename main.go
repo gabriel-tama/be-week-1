@@ -36,17 +36,20 @@ func main() {
 	userModel := models.NewUserModel(psql.PostgresConn)
 	bankModel := models.NewBankAccountModel(psql.PostgresConn)
 
-    // Initialize services
-    userService := services.NewUserService(userModel)
+	// Initialize services
+	// s3Service := services.NewS3Service(env.S3ID, env.S3Secret, env.S3Bucket, "file.txt")
+	userService := services.NewUserService(userModel)
 	bankService := services.NewBankService(bankModel)
 	jwtService := services.NewJWTService(secretKey)
 
-    // Initialize controllers
-    userController := controllers.NewUserController(userService,jwtService)
-	bankController := controllers.NewBankController(bankService,jwtService)
+	// s3Service.UploadFile(nil)
 
-    // Setup Gin router
-    router := routes.SetupRouter(userController,bankController,&jwtService)
+	// Initialize controllers
+	userController := controllers.NewUserController(userService, jwtService)
+	bankController := controllers.NewBankController(bankService, jwtService)
+
+	// Setup Gin router
+	router := routes.SetupRouter(userController, bankController, &jwtService)
 
 	// Start the server
 	if err := router.Run(fmt.Sprintf("%s:%s", env.Host, env.Port)); err != nil {
