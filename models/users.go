@@ -27,29 +27,24 @@ func NewUserModel(db *pgx.Conn) *UserModel {
 }
 
 func (um *UserModel) Create(username, name, password string) (*User,error) {
-    // Check if the username already exists
-    // exists, err := um.FindExistByUsername(username)
-    // if err != nil {
-    //     return nil,errors.New("something went wrong")
-    // }
-
-    // if exists {
-    //     return nil,errors.New("username already exist")
-    // }
-
+   
+    var user_id int
     // Hash the password
     hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
     if err != nil {
-        return nil,errors.New("something went wrong")
+        return nil,err
     }
 
     // Store the user in the database
-    _, err = um.db.Exec(context.Background(), "INSERT INTO users (username, name, password) VALUES ($1, $2, $3)",
-        username, name, string(hashedPassword))
+     err = um.db.QueryRow(context.Background(), "INSERT INTO users (username, name, password) VALUES ($1, $2, $3) RETURNING id",
+        username, name, string(hashedPassword)).Scan(&user_id)
     if err != nil {
-        return nil,errors.New("something went wrong")
+        return nil,err
     }
+
+   
         user := &User{
+        ID: uint(user_id),
         Username: username,
         Name:     name,
     }
@@ -68,11 +63,13 @@ func (um *UserModel) FindExistByUsername(username string) (bool,error){
 
 func (um *UserModel) FindUserByUsername(username string) (*User,error){
     var storedPassword,name string
-	err := um.db.QueryRow(context.Background(), "SELECT name,password FROM users WHERE username = $1", username).Scan(&name,&storedPassword)
+    var user_id int
+	err := um.db.QueryRow(context.Background(), "SELECT id,name,password FROM users WHERE username = $1", username).Scan(&user_id,&name,&storedPassword)
 	if err != nil {
 		return nil,err
 	}
     user := &User{
+        ID: uint(user_id) ,
         Username: username,
         Name:     name,
         Password: storedPassword,

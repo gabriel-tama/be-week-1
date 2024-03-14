@@ -1,0 +1,3 @@
+ALTER TABLE IF EXISTS users DROP CONSTRAINT IF EXISTS unique_username;
+
+DROP INDEX IF EXISTS username_idx;

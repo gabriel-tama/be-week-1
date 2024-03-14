@@ -12,7 +12,7 @@ func AuthorizeJWT(jwtService services.JWTService) gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 		
 		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message":"invalid request"})
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message":"unauthorized"})
 			return
 		}
 		const BEARER_SCHEMA = "BEARER "

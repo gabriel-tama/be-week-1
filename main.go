@@ -33,8 +33,8 @@ func main() {
 
 	defer psql.Close(context.Background())
 
-	userModel := models.NewUserModel(conn)
-	bankModel := models.NewBankAccountModel(conn)
+	userModel := models.NewUserModel(psql.PostgresConn)
+	bankModel := models.NewBankAccountModel(psql.PostgresConn)
 
     // Initialize services
     userService := services.NewUserService(userModel)
@@ -43,7 +43,7 @@ func main() {
 
     // Initialize controllers
     userController := controllers.NewUserController(userService,jwtService)
-	bankController := controllers.NewBankController(bankService)
+	bankController := controllers.NewBankController(bankService,jwtService)
 
     // Setup Gin router
     router := routes.SetupRouter(userController,bankController,&jwtService)
