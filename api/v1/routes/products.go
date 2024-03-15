@@ -12,8 +12,9 @@ func SetupProductRoutes(router *gin.RouterGroup, productController *controllers.
 	productRouter.Use(middlewares.AuthorizeJWT(*jwtService))
 
 	{
-		productRouter.POST("/",productController.CreateProduct)
-		productRouter.PATCH("/:productId",productController.UpdateProduct)
+		productRouter.GET("/", productController.CreateProduct)
+		productRouter.POST("/", productController.CreateProduct)
+		productRouter.PATCH("/:productId", productController.UpdateProduct)
 	}
-	
+
 }
