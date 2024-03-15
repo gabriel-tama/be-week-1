@@ -31,14 +31,14 @@ func (pm *PaymentModel) Create(user_id int, product_id int, payment *types.Payme
 	}
 	defer tx.Rollback(context.Background())
 
-	result,err := tx.Exec(context.Background(), "UPDATE product SET stock= stock - $1 WHERE (id=$2 AND ispurchaseable=true)",
+	_,err = tx.Exec(context.Background(), "UPDATE product SET stock= stock - $1 WHERE (id=$2 AND ispurchaseable=true)",
 						product_id,payment.Quantity)
 	
 	if err!=nil{
 		return false,nil
 	}
 
-	result,err = tx.Exec(context.Background(), "INSERT INTO payment (account_id,product_id,payment_proof,quantity) VALUES ($1,$2,$3,$4)",
+	result ,err := tx.Exec(context.Background(), "INSERT INTO payment (account_id,product_id,payment_proof,quantity) VALUES ($1,$2,$3,$4)",
 						user_id,product_id,payment.PaymentProofImageUrl,payment.Quantity)
 
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupProductRoutes(router *gin.RouterGroup, productController *controllers.ProductController, jwtService *services.JWTService) {
+func SetupProductRoutes(router *gin.RouterGroup, productController *controllers.ProductController, paymentController *controllers.PaymentController,jwtService *services.JWTService) {
 	productRouter := router.Group("/product")
 	productRouter.Use(middlewares.AuthorizeJWT(*jwtService))
 
@@ -15,6 +15,7 @@ func SetupProductRoutes(router *gin.RouterGroup, productController *controllers.
 		productRouter.POST("/",productController.CreateProduct)
 		productRouter.PATCH("/:productId",productController.UpdateProduct)
 		productRouter.DELETE("/:productId",productController.DeleteProduct)
+		productRouter.POST("/:productId/buy",paymentController.CreatePayment)
 	}
 	
 }

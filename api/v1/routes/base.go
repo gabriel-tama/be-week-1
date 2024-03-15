@@ -28,7 +28,7 @@ func leakBucket() gin.HandlerFunc {
 	}
 }
 
-func SetupRouter(userController *controllers.UserController,bankController *controllers.BankController, productController *controllers.ProductController, jwtService *services.JWTService) *gin.Engine {
+func SetupRouter(userController *controllers.UserController,bankController *controllers.BankController, productController *controllers.ProductController, paymentController *controllers.PaymentController,jwtService *services.JWTService) *gin.Engine {
 	limit = ratelimit.New(100)
 
 	router := gin.Default()
@@ -44,7 +44,7 @@ func SetupRouter(userController *controllers.UserController,bankController *cont
         // Setup  routes
         SetupUserRoutes(v1, userController)
         SetupBankRoutes(v1, bankController,jwtService)
-		SetupProductRoutes(v1,productController,jwtService)
+		SetupProductRoutes(v1,productController,paymentController,jwtService)
     }
 	router.GET("/rate", func(ctx *gin.Context) {
 		ctx.JSON(200, "rate limiting test")
