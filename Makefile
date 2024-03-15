@@ -14,6 +14,9 @@ migrate-create:
 migrate-up:
 	migrate -source $(migration_source) -database $(migration_destination) up
 
+migrate-down:
+	migrate -source $(migration_source) -database $(migration_destination) down
+
 docker-up:
 	docker compose up -d
 
