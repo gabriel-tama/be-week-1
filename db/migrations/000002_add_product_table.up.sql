@@ -1,4 +1,4 @@
-CREATE TABLE product (
+CREATE TABLE IF NOT EXISTS product (
     id SERIAL PRIMARY KEY,
     name VARCHAR(60) NOT NULL CHECK (LENGTH(name) >= 5),
     price DECIMAL NOT NULL CHECK (price >= 0),
@@ -8,8 +8,10 @@ CREATE TABLE product (
     isPurchaseable BOOLEAN NOT NULL
 );
 
+DROP TYPE IF EXISTS tag;
 CREATE TYPE tag AS ENUM ();
-CREATE TABLE product_tags (
+
+CREATE TABLE IF NOT EXISTS product_tags (
     product_id INT REFERENCES product(id),
     tag tag NOT NULL
 );
