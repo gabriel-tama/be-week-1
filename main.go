@@ -35,11 +35,13 @@ func main() {
 
 	userModel := models.NewUserModel(psql.PostgresConn)
 	bankModel := models.NewBankAccountModel(psql.PostgresConn)
+	productModel := models.NewProductModel(psql.PostgresConn)
 
 	// Initialize services
 	s3Service := services.NewS3Service(env.S3Region, env.S3ID, env.S3Secret, env.S3Bucket, env.S3Url)
 	userService := services.NewUserService(userModel)
 	bankService := services.NewBankService(bankModel)
+	productService := services.NewProductService(productModel)
 	jwtService := services.NewJWTService(secretKey)
 
 	// files, err := s3Service.ListFile()
@@ -54,9 +56,9 @@ func main() {
 	// Initialize controllers
 	userController := controllers.NewUserController(userService, jwtService)
 	bankController := controllers.NewBankController(bankService, jwtService)
-
+	productController := controllers.NewProductController(productService, jwtService)
 	// Setup Gin router
-	router := routes.SetupRouter(userController, bankController, &jwtService)
+	router := routes.SetupRouter(userController, bankController, productController, &jwtService)
 
 	// Start the server
 	if err := router.Run(fmt.Sprintf("%s:%s", env.Host, env.Port)); err != nil {

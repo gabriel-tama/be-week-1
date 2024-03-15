@@ -1,0 +1,8 @@
+ALTER TABLE product
+ADD COLUMN user_id INT;
+
+ALTER TABLE product
+ADD CONSTRAINT user_id_idx
+FOREIGN KEY (user_id)
+REFERENCES users(id)
+ON DELETE CASCADE;

@@ -64,6 +64,7 @@ func (bc *BankController) CreateBankAccount (c *gin.Context){
 	
 	if err!=nil{
 		c.JSON(http.StatusInternalServerError,gin.H{"message":err})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message":"account added sucessfully","data": bank})
@@ -140,7 +141,7 @@ func (bc *BankController) DeleteBankAccount(c *gin.Context){
 		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
 		return
 	}
-	if isDeleted==false{
+	if !isDeleted{
 		c.JSON(http.StatusNotFound,gin.H{"message":"account not found"})
 		return
 	}
@@ -152,7 +153,7 @@ func (bc *BankController) UpdateBankInfo(c *gin.Context){
 	acc_id, err := strconv.Atoi(c.Param("bankAccountId"))
 	if err != nil {
 		// If the parameter cannot be converted to an integer, return a Bad Request response
-		c.JSON(http.StatusNotFound, gin.H{"message": "account request"})
+		c.JSON(http.StatusNotFound, gin.H{"message": "account not found"})
 		return
 	}
 	
