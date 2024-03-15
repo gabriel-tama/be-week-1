@@ -30,7 +30,6 @@ func main() {
 	if dbErr != nil {
 		log.Fatal(dbErr)
 	}
-
 	defer psql.Close(context.Background())
 
 	userModel := models.NewUserModel(psql.PostgresConn)
@@ -44,21 +43,21 @@ func main() {
 	productService := services.NewProductService(productModel)
 	jwtService := services.NewJWTService(secretKey)
 
-	// files, err := s3Service.ListFile()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// for _, file := range files.Contents {
-	// 	fmt.Printf("key= %s \n", *file.Key)
-	// }
-
 	// Initialize controllers
 	userController := controllers.NewUserController(userService, jwtService)
 	bankController := controllers.NewBankController(bankService, jwtService)
 	productController := controllers.NewProductController(productService, jwtService)
+	imageController := controllers.NewImageController(jwtService, s3Service)
+
 	// Setup Gin router
-	router := routes.SetupRouter(userController, bankController, productController, &jwtService)
+	router := routes.SetupRouter(routes.RouteParam{
+		JwtService:        &jwtService,
+		S3Service:         &s3Service,
+		UserController:    userController,
+		BankController:    bankController,
+		ProductController: productController,
+		ImageController:   imageController,
+	})
 
 	// Start the server
 	if err := router.Run(fmt.Sprintf("%s:%s", env.Host, env.Port)); err != nil {

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -15,7 +14,7 @@ import (
 )
 
 type S3Service interface {
-	UploadFile(fileName string, fileForm io.Reader) (*s3.PutObjectOutput, error)
+	UploadFile(fileName string, fileForm io.Reader, contentType string) (*s3.PutObjectOutput, error)
 	GetObject(objectKey string) (*s3.GetObjectOutput, error)
 	ListFile() (*s3.ListObjectsV2Output, error)
 	GetObjectWithUrl(objectKey string) string
@@ -46,20 +45,20 @@ func NewS3Service(region string, accessKey string, secretKey string, bucketName 
 	}
 }
 
-func (service *S3ServiceImpl) UploadFile(fileName string, file io.Reader) (*s3.PutObjectOutput, error) {
+func (service *S3ServiceImpl) UploadFile(objectKey string, file io.Reader, contentType string) (*s3.PutObjectOutput, error) {
 	bucketName := service.bucketName
-	objectKey := fmt.Sprintf("%s/%v-%s", "ngab-gab", time.Now().Unix(), fileName)
 
 	obj, err := service.S3Client.PutObject(context.Background(), &s3.PutObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(objectKey),
-		ACL:    types.ObjectCannedACL((*aws.String("public-read"))),
-		Body:   file,
+		Bucket:      aws.String(bucketName),
+		Key:         aws.String(objectKey),
+		ACL:         types.ObjectCannedACL((*aws.String("public-read"))),
+		Body:        file,
+		ContentType: &contentType,
 	})
 
 	if err != nil {
-		log.Printf("Couldn't upload file %v to %v:%v. Here's why: %v\n",
-			fileName, bucketName, objectKey, err)
+		log.Printf("Couldn't upload file %v to %v. Here's why: %v\n",
+			bucketName, objectKey, err)
 	}
 
 	return obj, err
