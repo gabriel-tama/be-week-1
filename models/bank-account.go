@@ -85,6 +85,7 @@ func (bm *BankAccountModel) Update(acc_id int, user_id int, bankName string, ban
 	}
 
 	rowsAffected := result.RowsAffected()
+
 	if rowsAffected == 0 {
 		return false, nil
 	}

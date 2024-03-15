@@ -22,6 +22,7 @@ type RouteParam struct {
 	UserController    *controllers.UserController
 	BankController    *controllers.BankController
 	ProductController *controllers.ProductController
+  PaymentController *controllers.PaymentController
 	ImageController   *controllers.ImageController
 	JwtService        *services.JWTService
 	S3Service         *services.S3Service
@@ -36,6 +37,7 @@ func leakBucket() gin.HandlerFunc {
 	}
 }
 
+
 func SetupRouter(param RouteParam) *gin.Engine {
 	limit = ratelimit.New(100)
 
@@ -49,10 +51,11 @@ func SetupRouter(param RouteParam) *gin.Engine {
 	// Setup API version 1 routes
 	v1 := router.Group("/api/v1")
 	{
+
 		// Setup  routes
 		SetupUserRoutes(v1, param.UserController)
 		SetupBankRoutes(v1, param.BankController, param.JwtService)
-		SetupProductRoutes(v1, param.ProductController, param.JwtService)
+		SetupProductRoutes(v1, param.ProductController, param.PaymentController, param.JwtService)
 		SetupImageRoutes(v1, param.ImageController, param.JwtService, param.S3Service)
 	}
 	router.GET("/rate", func(ctx *gin.Context) {

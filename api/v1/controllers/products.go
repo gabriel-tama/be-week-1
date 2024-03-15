@@ -203,6 +203,55 @@ func (pc *ProductController) DeleteProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "product deleted successfully"})
+} 
+
+func (pc *ProductController) UpdateStock(c *gin.Context){
+	var productStock types.ProductStock
+
+	productId, err := strconv.Atoi(c.Param("productId"))
+
+	if err !=nil{
+		c.JSON(http.StatusNotFound,gin.H{"message":"product not found"})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&productStock); err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "quantity invalid"})
+		return
+	}
+	
+	authHeader := c.GetHeader("Authorization")
+	
+	const BEARER_SCHEMA = "BEARER "
+	
+	tokenString:= authHeader[len(BEARER_SCHEMA):]
+	
+	userID,err := pc.jwtService.GetUserIDByToken(tokenString)	
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
+		return
+	}
+
+	convertedUserID, err := strconv.ParseUint(userID, 10, 64)
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
+		return
+	}
+
+	exists, err := pc.productService.UpdateStock(int(convertedUserID),productId, productStock.Stock)
+
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
+		return
+	}
+
+	if !exists{
+		c.JSON(http.StatusNotFound,gin.H{"message":"product not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK,gin.H{"message":"stock updated succesfully"})	
+
 
 }

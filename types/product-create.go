@@ -9,3 +9,7 @@ type ProductCreate struct {
 	Tags           []string `json:"tags" binding:"required"`
 	IsPurchaseable bool     `json:"isPurchaseable" binding:"required"`
 }
+
+type ProductStock struct {
+	Stock int `json:"stock" binding:"required,min=0"`
+}

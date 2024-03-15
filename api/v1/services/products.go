@@ -6,9 +6,10 @@ import (
 )
 
 type ProductService interface {
-	Create(user_id int, product types.ProductCreate) error
-	Update(user_id int, productId int, product types.ProductCreate) (bool, error)
-	Delete(user_id int, productId int) (bool, error)
+	Create(user_id int, product types.ProductCreate)(error)
+	Update(user_id int, productId int, product types.ProductCreate)(bool,error)
+	Delete(user_id int, productId int)(bool,error)
+	UpdateStock(user_id int, productId int, stock int)(bool,error)
 	FindAll(props models.FindAllProductParams) (models.FindAllProductResponse, error)
 }
 
@@ -52,4 +53,12 @@ func (ps *productServiceImpl) Delete(user_id int, productId int) (bool, error) {
 		return false, err
 	}
 	return exist, nil
+}
+
+func (ps *productServiceImpl) UpdateStock(user_id int, productId int, stock int )(bool ,error){
+	exist, err:= ps.productModel.UpdateStock(user_id,productId,stock)
+	if err!=nil{
+		return false, err
+	}
+	return exist,nil
 }
