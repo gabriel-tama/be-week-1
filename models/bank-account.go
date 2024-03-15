@@ -92,3 +92,4 @@ func (bm *BankAccountModel) Update(acc_id int, user_id int, bankName string, ban
     }
 	return true,nil
 }
+

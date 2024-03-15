@@ -151,3 +151,35 @@ func (pm *ProductModel) Delete(user_id int, productId int)(bool, error){
 	return true, nil
 }
 
+
+
+func (pm *ProductModel) UpdateStock(user_id int, productId int, stock int)(bool,error){
+	tx,err := pm.db.Begin(context.Background())
+
+	if err!=nil{
+		return false, nil
+	}
+	defer tx.Rollback(context.Background())
+
+
+	result,err := tx.Exec(context.Background(), "UPDATE product SET stock=$1 WHERE id=$2 AND user_id=$3",
+						stock,productId,user_id)
+
+	if err != nil {
+		return false,err
+    }
+
+	rowsAffected := result.RowsAffected()
+    if rowsAffected == 0 {
+        return false,nil
+    }
+
+	
+	err = tx.Commit(context.Background())
+
+	if err!=nil{
+		return false, err
+	}
+
+	return true, nil
+}
