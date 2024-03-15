@@ -1,3 +1,3 @@
-ALTER TABLE product DROP CONSTRAINT user_id_idx;
+-- ALTER TABLE IF EXISTS product DROP CONSTRAINT user_id_idx;
 
-DROP INDEX index_name;
+DROP INDEX IF EXISTS user_id_idx;

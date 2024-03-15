@@ -1,3 +1,5 @@
-DELETE TABLE IF EXISTS "product_tags";
+DROP TABLE IF EXISTS "product_tags";
 
-DELETE TABLE IF EXISTS "product";
+DROP TABLE IF EXISTS "product";
+
+DROP TYPE IF EXISTS tag;
