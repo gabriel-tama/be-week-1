@@ -28,6 +28,16 @@ func (ic *ImageController) UploadImage(c *gin.Context) {
 		return
 	}
 
+	// Check file size
+	if file.Size > 2*1024*1024 || file.Size < 10*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "image is wrong (not *.jpg | *.jpeg, more than 2MB or less than 10KB)"})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "file not found"})
+		return
+	}
+
 	fileHeader, err := file.Open()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err})
