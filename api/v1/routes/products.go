@@ -12,8 +12,8 @@ func SetupProductRoutes(router *gin.RouterGroup, productController *controllers.
 	productRouter.Use(middlewares.AuthorizeJWT(*jwtService))
 
 	{
-		productRouter.GET("/", productController.CreateProduct)
-    productRouter.POST("/",productController.CreateProduct)
+		productRouter.GET("/", productController.FindAll)
+   		productRouter.POST("/",productController.CreateProduct)
 		productRouter.PATCH("/:productId",productController.UpdateProduct)
 		productRouter.DELETE("/:productId",productController.DeleteProduct)
 		productRouter.POST("/:productId/buy",paymentController.CreatePayment)
