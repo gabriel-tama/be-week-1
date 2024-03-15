@@ -44,6 +44,8 @@ func SetupRouter(param RouteParam) *gin.Engine {
 	router.Use(leakBucket())
 	router.SetTrustedProxies([]string{"::1"}) // This is for reverse proxy
 
+	router.Use(gin.Recovery())
+
 	// Setup API version 1 routes
 	v1 := router.Group("/api/v1")
 	{

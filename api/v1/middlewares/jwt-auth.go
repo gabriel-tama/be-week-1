@@ -17,13 +17,12 @@ func AuthorizeJWT(jwtService services.JWTService) gin.HandlerFunc {
 			return
 		}
 
-		log.Default().Println(authHeader)
-
 		const BEARER_SCHEMA = "BEARER "
 		tokenString := authHeader[len(BEARER_SCHEMA):]
-		token, _ := jwtService.ValidateToken(tokenString)
+		_, err := jwtService.ValidateToken(tokenString)
 
-		if !token.Valid {
+		if err != nil {
+			log.Println(err)
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": "forbidden"})
 		}
 	}

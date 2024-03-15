@@ -10,10 +10,10 @@ import (
 )
 
 func SetupImageRoutes(router *gin.RouterGroup, imageController *controllers.ImageController, jwtService *services.JWTService, s3Service *services.S3Service) {
-	userRouter := router.Group("/image")
-	router.Use(middlewares.AuthorizeJWT(*jwtService))
+	imgRouter := router.Group("/image")
+	imgRouter.Use(middlewares.AuthorizeJWT(*jwtService))
 
 	{
-		userRouter.POST("/", imageController.UploadImage)
+		imgRouter.POST("/", imageController.UploadImage)
 	}
 }
