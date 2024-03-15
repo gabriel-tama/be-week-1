@@ -17,6 +17,7 @@ func SetupProductRoutes(router *gin.RouterGroup, productController *controllers.
 		productRouter.PATCH("/:productId",productController.UpdateProduct)
 		productRouter.DELETE("/:productId",productController.DeleteProduct)
 		productRouter.POST("/:productId/buy",paymentController.CreatePayment)
+		productRouter.POST("/:productId/stock",productController.UpdateStock)
 
 	}
 

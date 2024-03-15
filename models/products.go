@@ -188,7 +188,7 @@ func (pm *ProductModel) Create(user_id int, product types.ProductCreate) error {
 	return nil
 }
 
-func (pm *ProductModel) Update(user_id int, productId int, product types.ProductCreate) (bool, error) {
+func (pm *ProductModel) Update(user_id int, productId int, product types.ProductUpdate) (bool, error) {
 	tx, err := pm.db.Begin(context.Background())
 
 	if err != nil {
@@ -245,7 +245,7 @@ func (pm *ProductModel) Delete(user_id int, productId int) (bool, error) {
 	}
 	defer tx.Rollback(context.Background())
 
-	result, err := tx.Exec(context.Background(), "UPDATE product SET is_deleted=true WHERE id=$1 AND user_id=$2",
+	result, err := tx.Exec(context.Background(), "UPDATE product SET is_deleted=true WHERE id=$1 AND user_id=$2 AND is_deleted=false",
 		productId, user_id)
 
 	if err != nil {

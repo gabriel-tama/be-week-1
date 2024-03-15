@@ -6,7 +6,7 @@ import (
 )
 
 type PaymentService interface {
-	CreatePayment(user_id int, productId int, payment *types.PaymentCreate) (bool, error)
+	CreatePayment(user_id int, productId int, payment types.PaymentCreate) (bool, error)
 }
 
 type paymentServiceImpl struct {
@@ -17,7 +17,7 @@ func NewPaymentService(paymentModel *models.PaymentModel) PaymentService {
 	return &paymentServiceImpl{paymentModel: paymentModel}
 }
 
-func (ps *paymentServiceImpl) CreatePayment(user_id int, productId int, payment *types.PaymentCreate) (bool, error) {
+func (ps *paymentServiceImpl) CreatePayment(user_id int, productId int, payment types.PaymentCreate) (bool, error) {
 	exist, err := ps.paymentModel.Create(user_id, productId, payment)
 	if err != nil {
 		return false, err

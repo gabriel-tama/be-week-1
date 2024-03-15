@@ -25,12 +25,22 @@ func NewBankAccountModel(db *pgx.Conn) *BankAccountModel {
 
 func (bm *BankAccountModel) Create(user_id int, bank_name, account_name, account_number string) (*BankAccount, error) {
 	// Store the user in the database
-	_, err := bm.db.Exec(context.Background(), "INSERT INTO bankaccounts (user_id, bank_name, account_name,account_number) VALUES ($1, $2, $3, $4)",
+	tx, err := bm.db.Begin(context.Background())
+	if err!=nil{
+		return nil,err
+	}
+	defer tx.Rollback(context.Background())
+
+	_, err = tx.Exec(context.Background(), "INSERT INTO bankaccounts (user_id, bank_name, account_name,account_number) VALUES ($1, $2, $3, $4)",
 		user_id, bank_name, account_name, account_number)
 	if err != nil {
 		return nil, err
 	}
+	err = tx.Commit(context.Background())
 
+	if err!=nil{
+		return nil,err
+	}
 	bankAcc := &BankAccount{
 		BankName:          bank_name,
 		BankAccountName:   account_name,
@@ -66,9 +76,19 @@ func (bm *BankAccountModel) FindByUserId(user_id int) ([]BankAccount, error) {
 }
 
 func (bm *BankAccountModel) Delete(acc_id int, user_id int) (bool, error) {
-	result, err := bm.db.Exec(context.Background(), "DELETE FROM bankaccounts WHERE user_id=$1 AND account_id=$2", user_id, acc_id)
+	tx, err := bm.db.Begin(context.Background())
+	if err!=nil{
+		return false,err
+	}
+	defer tx.Rollback(context.Background())
+	result, err := tx.Exec(context.Background(), "UPDATE bankaccounts SET is_deleted=true WHERE user_id=$1 AND account_id=$2 AND is_deleted=false", user_id, acc_id)
 	if err != nil {
 		return false, err
+	}
+	err = tx.Commit(context.Background())
+
+	if err!=nil{
+		return false,err
 	}
 
 	rowsAffected := result.RowsAffected()

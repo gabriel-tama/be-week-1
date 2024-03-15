@@ -116,7 +116,7 @@ func (pc *ProductController) CreateProduct(c *gin.Context) {
 }
 
 func (pc *ProductController) UpdateProduct(c *gin.Context) {
-	var product types.ProductCreate
+	var product types.ProductUpdate
 
 	productId, err := strconv.Atoi(c.Param("productId"))
 

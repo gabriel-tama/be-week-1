@@ -49,8 +49,10 @@ func (jwtService *jwtServiceImpl) ValidateToken(tokenString string) (*jwt.Token,
 func (jwtService *jwtServiceImpl) GetUserIDByToken(tokenString string) (string, error) {
 	aToken, err := jwtService.ValidateToken(tokenString)
 	if err != nil {
+		fmt.Println(err)
 		return "", err
 	}
+	fmt.Println(aToken)
 	claims := aToken.Claims.(jwt.MapClaims)
 	return fmt.Sprintf("%v", claims["user_id"]), nil
 }
