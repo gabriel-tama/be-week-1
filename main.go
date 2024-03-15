@@ -37,12 +37,19 @@ func main() {
 	bankModel := models.NewBankAccountModel(psql.PostgresConn)
 
 	// Initialize services
-	// s3Service := services.NewS3Service(env.S3ID, env.S3Secret, env.S3Bucket, "file.txt")
+	s3Service := services.NewS3Service(env.S3Region, env.S3ID, env.S3Secret, env.S3Bucket, env.S3Url)
 	userService := services.NewUserService(userModel)
 	bankService := services.NewBankService(bankModel)
 	jwtService := services.NewJWTService(secretKey)
 
-	// s3Service.UploadFile(nil)
+	// files, err := s3Service.ListFile()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// for _, file := range files.Contents {
+	// 	fmt.Printf("key= %s \n", *file.Key)
+	// }
 
 	// Initialize controllers
 	userController := controllers.NewUserController(userService, jwtService)

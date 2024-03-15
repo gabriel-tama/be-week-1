@@ -20,6 +20,8 @@ type Config struct {
 	S3Bucket string
 	S3Secret string
 	S3ID     string
+	S3Url    string
+	S3Region string
 
 	JWTSecret   string
 	BCRYPT_Salt string
@@ -46,6 +48,8 @@ func Get() (*Config, error) {
 		S3Bucket: os.Getenv("S3_BUCKET_NAME"),
 		S3Secret: os.Getenv("S3_SECRET_KEY"),
 		S3ID:     os.Getenv("S3_ID"),
+		S3Url:    os.Getenv("S3_BASE_URL"),
+		S3Region: os.Getenv("S3_REGION"),
 	}
 
 	return Conf, nil
