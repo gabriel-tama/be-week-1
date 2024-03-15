@@ -33,10 +33,6 @@ func (ic *ImageController) UploadImage(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "image is wrong (not *.jpg | *.jpeg, more than 2MB or less than 10KB)"})
 		return
 	}
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "file not found"})
-		return
-	}
 
 	fileHeader, err := file.Open()
 	if err != nil {

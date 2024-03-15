@@ -15,16 +15,17 @@ type JWTService interface {
 
 type jwtServiceImpl struct {
 	secretKey []byte
+	jwtExp    int
 }
 
-func NewJWTService(secretKey string) JWTService {
-	return &jwtServiceImpl{secretKey: []byte(secretKey)}
+func NewJWTService(secretKey string, JWTExp int) JWTService {
+	return &jwtServiceImpl{secretKey: []byte(secretKey), jwtExp: JWTExp}
 }
 
 func (jwtService *jwtServiceImpl) CreateToken(user_id int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user_id,
-		"exp":     time.Now().Add(time.Minute * 2).Unix(),
+		"exp":     time.Now().Add(time.Duration(jwtService.jwtExp)).Unix(),
 	})
 
 	tokenString, err := token.SignedString(jwtService.secretKey)
@@ -48,7 +49,6 @@ func (jwtService *jwtServiceImpl) ValidateToken(tokenString string) (*jwt.Token,
 func (jwtService *jwtServiceImpl) GetUserIDByToken(tokenString string) (string, error) {
 	aToken, err := jwtService.ValidateToken(tokenString)
 	if err != nil {
-		// panic(err.Error())
 		return "", err
 	}
 	claims := aToken.Claims.(jwt.MapClaims)

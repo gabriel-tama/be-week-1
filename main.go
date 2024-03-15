@@ -32,7 +32,7 @@ func main() {
 	}
 	defer psql.Close(context.Background())
 
-	userModel := models.NewUserModel(psql.PostgresConn)
+	userModel := models.NewUserModel(psql.PostgresConn, env.BCRYPT_Salt)
 	bankModel := models.NewBankAccountModel(psql.PostgresConn)
 	productModel := models.NewProductModel(psql.PostgresConn)
 
@@ -41,7 +41,7 @@ func main() {
 	userService := services.NewUserService(userModel)
 	bankService := services.NewBankService(bankModel)
 	productService := services.NewProductService(productModel)
-	jwtService := services.NewJWTService(secretKey)
+	jwtService := services.NewJWTService(secretKey, env.JWTExp)
 
 	// Initialize controllers
 	userController := controllers.NewUserController(userService, jwtService)

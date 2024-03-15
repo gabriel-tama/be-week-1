@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -24,7 +25,8 @@ type Config struct {
 	S3Region string
 
 	JWTSecret   string
-	BCRYPT_Salt string
+	BCRYPT_Salt int
+	JWTExp      int
 }
 
 func Get() (*Config, error) {
@@ -33,6 +35,18 @@ func Get() (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
+	}
+
+	JWTExp, err := strconv.Atoi(os.Getenv("JWT_EXPIRATION"))
+	if err != nil {
+		log.Fatal("Error parsing JWT_EXPIRATION")
+		JWTExp = 60
+	}
+
+	salt, err := strconv.Atoi(os.Getenv("BCRYPT_SALT"))
+	if err != nil {
+		log.Fatal("Error parsing BCRYPT_SALT")
+		salt = 10
 	}
 
 	Conf = &Config{
@@ -50,6 +64,10 @@ func Get() (*Config, error) {
 		S3ID:     os.Getenv("S3_ID"),
 		S3Url:    os.Getenv("S3_BASE_URL"),
 		S3Region: os.Getenv("S3_REGION"),
+
+		JWTSecret:   os.Getenv("JWT_SECRET"),
+		BCRYPT_Salt: salt,
+		JWTExp:      JWTExp,
 	}
 
 	return Conf, nil
