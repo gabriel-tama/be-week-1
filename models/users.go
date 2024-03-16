@@ -6,7 +6,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,11 +18,11 @@ type User struct {
 }
 
 type UserModel struct {
-	db   *pgx.Conn
+	db   *pgxpool.Pool
 	salt int
 }
 
-func NewUserModel(db *pgx.Conn, salt int) *UserModel {
+func NewUserModel(db *pgxpool.Pool, salt int) *UserModel {
 	return &UserModel{db: db, salt: salt}
 }
 

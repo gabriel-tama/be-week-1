@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type BankAccount struct {
@@ -16,18 +16,18 @@ type BankAccount struct {
 }
 
 type BankAccountModel struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewBankAccountModel(db *pgx.Conn) *BankAccountModel {
+func NewBankAccountModel(db *pgxpool.Pool) *BankAccountModel {
 	return &BankAccountModel{db: db}
 }
 
 func (bm *BankAccountModel) Create(user_id int, bank_name, account_name, account_number string) (*BankAccount, error) {
 	// Store the user in the database
 	tx, err := bm.db.Begin(context.Background())
-	if err!=nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
 	defer tx.Rollback(context.Background())
 
@@ -38,8 +38,8 @@ func (bm *BankAccountModel) Create(user_id int, bank_name, account_name, account
 	}
 	err = tx.Commit(context.Background())
 
-	if err!=nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
 	bankAcc := &BankAccount{
 		BankName:          bank_name,
@@ -77,8 +77,8 @@ func (bm *BankAccountModel) FindByUserId(user_id int) ([]BankAccount, error) {
 
 func (bm *BankAccountModel) Delete(acc_id int, user_id int) (bool, error) {
 	tx, err := bm.db.Begin(context.Background())
-	if err!=nil{
-		return false,err
+	if err != nil {
+		return false, err
 	}
 	defer tx.Rollback(context.Background())
 	result, err := tx.Exec(context.Background(), "UPDATE bankaccounts SET is_deleted=true WHERE user_id=$1 AND account_id=$2 AND is_deleted=false", user_id, acc_id)
@@ -87,8 +87,8 @@ func (bm *BankAccountModel) Delete(acc_id int, user_id int) (bool, error) {
 	}
 	err = tx.Commit(context.Background())
 
-	if err!=nil{
-		return false,err
+	if err != nil {
+		return false, err
 	}
 
 	rowsAffected := result.RowsAffected()
