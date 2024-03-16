@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strconv"
 
@@ -47,16 +48,22 @@ type FindAllProductResponse struct {
 	Meta     types.Meta
 }
 
+type FindByIdResponse struct{
+	Product response.ProductResponse
+	Seller response.SellerResponse
+}
+
+
 func (pm *ProductModel) FindAll(param FindAllProductParams) (FindAllProductResponse, error) {
 	var res FindAllProductResponse
 	var products []response.ProductResponse
 	var total int
 
 	var query = `
-	SELECT p.id, p.name, p.price, p.imageUrl, p.stock, p.condition, p.isPurchaseable, pt.tag, 
+	SELECT p.id, p.name, p.price, p.imageUrl, p.stock, p.condition, p.isPurchaseable, array_agg(pt.tag) AS tags, 
 	(SELECT COUNT(*) FROM payment pp WHERE pp.product_id = p.id) AS purchaseCount
 	FROM product p LEFT JOIN product_tags pt ON p.id = pt.product_id 
-	WHERE p.is_deleted = false AND pt.is_deleted
+	WHERE p.is_deleted = false AND pt.is_deleted=false 
 	`
 
 	if len(param.Tags) > 0 {
@@ -106,9 +113,9 @@ func (pm *ProductModel) FindAll(param FindAllProductParams) (FindAllProductRespo
 			query += param.OrderBy + " "
 		}
 	}
-
+	query+= "GROUP BY p.id "
 	query += "LIMIT " + strconv.Itoa(param.Limit) + " OFFSET " + strconv.Itoa(param.Offset)
-
+	fmt.Println(query)
 	rows, err := pm.db.Query(context.Background(), query)
 
 	if err != nil {
@@ -132,6 +139,7 @@ func (pm *ProductModel) FindAll(param FindAllProductParams) (FindAllProductRespo
 		)
 
 		if err != nil {
+			fmt.Println(err)
 			return res, err
 		}
 
@@ -307,3 +315,98 @@ func (pm *ProductModel) UpdateStock(user_id int, productId int, stock int)(bool,
 	return true, nil
 }
 
+
+func (pm *ProductModel) FindById(productId int)(FindByIdResponse,error){
+	// var seller response.SellerResponse
+	// var product response.ProductResponse
+	var res FindByIdResponse
+
+	// stmt:=` SELECT p.id, p.name, p.price, p.imageurl, p.stock, p.condition, p.ispurchaseable,array_agg(pt.tag) AS tags,
+	// 		(SELECT COUNT(*) FROM payment pp WHERE pp.product_id=p.id AS purchaseCount),
+	// 		u.name AS seller_username,
+	// 		ba.account_id,
+	// 		ba.bank_name,
+	// 		ba.account_name,
+	// 		ba.account_number,
+	// 		LEFT JOIN 
+	// 			product_tags pt ON p.id = pt.product_id
+	// 		LEFT JOIN
+	// 			user u ON p.user_id = u.id 
+	// 		LEFT JOIN
+	// 			bankaccounts ba ON u.id = ba.user_id 
+	// `	
+
+	var query = `
+	SELECT p.id, p.name, p.price, p.imageUrl, p.stock, p.condition, p.isPurchaseable, array_agg(pt.tag) AS tags, 
+	(SELECT COUNT(*) FROM payment pp WHERE pp.product_id = p.id) AS purchaseCount
+	FROM product p LEFT JOIN product_tags pt ON p.id = pt.product_id 
+	WHERE p.id=$1 AND p.is_deleted = false AND pt.is_deleted=false GROUP BY p.id
+	`
+	err := pm.db.QueryRow(context.Background(), query, productId).Scan(
+				&res.Product.ProductId,
+				&res.Product.Name,
+				&res.Product.Price,
+				&res.Product.ImageURL,
+				&res.Product.Stock,
+				&res.Product.Condition,
+				&res.Product.IsPurchaseable,
+				&res.Product.Tags,
+				&res.Product.PurchaseCount,
+	)
+
+	if err!=nil{
+		return res,err
+	}
+
+	query = `SELECT 
+					u.id,
+					u.name,
+					b.account_id,
+					b.bank_name,
+					b.account_name,
+					b.account_number,
+					COALESCE (SUM (pp.quantity),0) AS total_quantity
+				FROM 
+					product p
+				LEFT JOIN
+					users u ON p.user_id = u.id
+				LEFT JOIN
+					bankaccounts b ON u.id = b.user_id
+				LEFT JOIN
+					payment pp ON pp.account_id = b.account_id
+				WHERE 
+					p.id = $1
+					AND p.is_deleted = false
+					AND b.is_deleted = false
+				GROUP BY 
+					u.id,
+					b.account_id;
+`
+
+	rows, err := pm.db.Query(context.Background(), query, productId)
+	
+	if err != nil {
+		log.Fatal(err)
+		return res, err
+	}
+
+
+	defer rows.Close()
+	productSold:=0
+	for rows.Next() {
+		var bank types.GetBankData
+		var user_id,total int 
+		err := rows.Scan(&user_id,&res.Seller.Name,&bank.BankAccountId, &bank.BankName, &bank.BankAccountName, &bank.BankAccountNumber,&total)
+		if err != nil {
+			return res, err
+		}
+		res.Seller.BankAccounts = append(res.Seller.BankAccounts, bank)
+		productSold+=total
+	}
+	if err := rows.Err(); err != nil {
+		return res, err
+	}
+	res.Seller.ProductSoldTotal=productSold
+
+	return res, nil
+}

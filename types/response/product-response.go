@@ -1,5 +1,7 @@
 package response
 
+import "github.com/gabriel-tama/be-week-1/types"
+
 type ProductResponse struct {
 	ProductId      string   `json:"productId"`
 	Name           string   `json:"name"`
@@ -11,3 +13,11 @@ type ProductResponse struct {
 	IsPurchaseable bool     `json:"isPurchaseable"`
 	PurchaseCount  int      `json:"purchaseCount"`
 }
+
+type SellerResponse struct {
+	Name             string
+	ProductSoldTotal int
+	BankAccounts     []types.GetBankData
+}
+
+

@@ -9,15 +9,20 @@ import (
 
 func SetupProductRoutes(router *gin.RouterGroup, productController *controllers.ProductController, paymentController *controllers.PaymentController,jwtService *services.JWTService) {
 	productRouter := router.Group("/product")
-	productRouter.Use(middlewares.AuthorizeJWT(*jwtService))
+	// productRouter.Use(middlewares.AuthorizeJWT(*jwtService))
 
 	{
+		// protected route
+   		productRouter.POST("/",middlewares.AuthorizeJWT(*jwtService),productController.CreateProduct)
+		productRouter.PATCH("/:productId",middlewares.AuthorizeJWT(*jwtService),productController.UpdateProduct)
+		productRouter.DELETE("/:productId",middlewares.AuthorizeJWT(*jwtService),productController.DeleteProduct)
+		productRouter.POST("/:productId/buy",middlewares.AuthorizeJWT(*jwtService),paymentController.CreatePayment)
+		productRouter.POST("/:productId/stock",middlewares.AuthorizeJWT(*jwtService),productController.UpdateStock)
+
+		// public route
 		productRouter.GET("/", productController.FindAll)
-   		productRouter.POST("/",productController.CreateProduct)
-		productRouter.PATCH("/:productId",productController.UpdateProduct)
-		productRouter.DELETE("/:productId",productController.DeleteProduct)
-		productRouter.POST("/:productId/buy",paymentController.CreatePayment)
-		productRouter.POST("/:productId/stock",productController.UpdateStock)
+		productRouter.GET("/:productId", productController.FindById)
+
 
 	}
 

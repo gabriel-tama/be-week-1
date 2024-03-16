@@ -11,6 +11,7 @@ type ProductService interface {
 	Delete(user_id int, productId int)(bool,error)
 	UpdateStock(user_id int, productId int, stock int)(bool,error)
 	FindAll(props models.FindAllProductParams) (models.FindAllProductResponse, error)
+	FindById(product_id int)(models.FindByIdResponse,error)
 }
 
 type productServiceImpl struct {
@@ -25,6 +26,15 @@ func (ps *productServiceImpl) FindAll(porps models.FindAllProductParams) (models
 	res, err := ps.productModel.FindAll(porps)
 	if err != nil {
 		return models.FindAllProductResponse{}, err
+	}
+
+	return res, nil
+}
+
+func (ps *productServiceImpl) FindById(product_id int) (models.FindByIdResponse, error) {
+	res, err := ps.productModel.FindById(product_id)
+	if err != nil {
+		return models.FindByIdResponse{}, err
 	}
 
 	return res, nil
