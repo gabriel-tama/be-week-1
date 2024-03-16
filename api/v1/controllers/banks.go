@@ -42,7 +42,7 @@ func (bc *BankController) GetUserIDByToken(c *gin.Context) uint64 {
 
 	convertedUserID, err := strconv.ParseUint(userId, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err})
+		c.JSON(http.StatusNotFound, gin.H{"message": "not found acc"})
 	}
 
 	return convertedUserID
@@ -124,7 +124,7 @@ func (bc *BankController) UpdateBankInfo(c *gin.Context) {
 
 	if err != nil {
 		// If the parameter cannot be converted to an integer, return a Bad Request response
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "failed converting account id to integer"})
+		c.JSON(http.StatusNotFound, gin.H{"message": "not found"})
 		return
 	}
 
