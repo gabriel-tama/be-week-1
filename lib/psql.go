@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	C "github.com/gabriel-tama/be-week-1/config"
 )
 
-var PostgresConn *pgx.Conn
+var PgPool *pgxpool.Pool
 
 func GetPostgresURL() string {
 	env, err := C.Get()
@@ -31,21 +33,18 @@ func GetPostgresURL() string {
 
 func Init(ctx context.Context) error {
 	var err error
-	PostgresConn, err = pgx.Connect(ctx, GetPostgresURL())
-	if err != nil {
-		return fmt.Errorf("error opening database connection: %w", err)
-	}
 
-	err = PostgresConn.Ping(ctx)
+	PgPool, err = pgxpool.New(context.Background(), GetPostgresURL())
 	if err != nil {
-		return fmt.Errorf("error pinging database: %w", err)
+		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
+		os.Exit(1)
 	}
 
 	return nil
 }
 
 func PGTransaction(ctx context.Context) (pgx.Tx, error) {
-	tx, err := PostgresConn.BeginTx(ctx, pgx.TxOptions{})
+	tx, err := PgPool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -54,5 +53,5 @@ func PGTransaction(ctx context.Context) (pgx.Tx, error) {
 }
 
 func Close(ctx context.Context) {
-	PostgresConn.Close(ctx)
+	PgPool.Close()
 }

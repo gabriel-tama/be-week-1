@@ -26,16 +26,15 @@ func main() {
 	secretKey := env.JWTSecret
 
 	dbErr := psql.Init(context.Background())
-
 	if dbErr != nil {
 		log.Fatal(dbErr)
 	}
 	defer psql.Close(context.Background())
 
-	userModel := models.NewUserModel(psql.PostgresConn, env.BCRYPT_Salt)
-	bankModel := models.NewBankAccountModel(psql.PostgresConn)
-	productModel := models.NewProductModel(psql.PostgresConn)
-	paymentModel := models.NewPaymentModel(psql.PostgresConn)
+	userModel := models.NewUserModel(psql.PgPool, env.BCRYPT_Salt)
+	bankModel := models.NewBankAccountModel(psql.PgPool)
+	productModel := models.NewProductModel(psql.PgPool)
+	paymentModel := models.NewPaymentModel(psql.PgPool)
 
 	// Initialize services
 	s3Service := services.NewS3Service(env.S3Region, env.S3ID, env.S3Secret, env.S3Bucket, env.S3Url)
@@ -49,7 +48,7 @@ func main() {
 	userController := controllers.NewUserController(userService, jwtService)
 	bankController := controllers.NewBankController(bankService, jwtService)
 	productController := controllers.NewProductController(productService, jwtService)
-	paymentController := controllers.NewPaymentController(paymentService,jwtService)
+	paymentController := controllers.NewPaymentController(paymentService, jwtService)
 	imageController := controllers.NewImageController(jwtService, s3Service)
 
 	// Setup Gin router

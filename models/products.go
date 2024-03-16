@@ -8,7 +8,7 @@ import (
 
 	"github.com/gabriel-tama/be-week-1/types"
 	"github.com/gabriel-tama/be-week-1/types/response"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Product struct {
@@ -23,10 +23,10 @@ type Product struct {
 }
 
 type ProductModel struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewProductModel(db *pgx.Conn) *ProductModel {
+func NewProductModel(db *pgxpool.Pool) *ProductModel {
 	return &ProductModel{db: db}
 }
 
@@ -48,11 +48,10 @@ type FindAllProductResponse struct {
 	Meta     types.Meta
 }
 
-type FindByIdResponse struct{
+type FindByIdResponse struct {
 	Product response.ProductResponse
-	Seller response.SellerResponse
+	Seller  response.SellerResponse
 }
-
 
 func (pm *ProductModel) FindAll(param FindAllProductParams) (FindAllProductResponse, error) {
 	var res FindAllProductResponse
@@ -113,7 +112,7 @@ func (pm *ProductModel) FindAll(param FindAllProductParams) (FindAllProductRespo
 			query += param.OrderBy + " "
 		}
 	}
-	query+= "GROUP BY p.id "
+	query += "GROUP BY p.id "
 	query += "LIMIT " + strconv.Itoa(param.Limit) + " OFFSET " + strconv.Itoa(param.Offset)
 	fmt.Println(query)
 	rows, err := pm.db.Query(context.Background(), query)
@@ -282,41 +281,36 @@ func (pm *ProductModel) Delete(user_id int, productId int) (bool, error) {
 	return true, nil
 }
 
+func (pm *ProductModel) UpdateStock(user_id int, productId int, stock int) (bool, error) {
+	tx, err := pm.db.Begin(context.Background())
 
-
-func (pm *ProductModel) UpdateStock(user_id int, productId int, stock int)(bool,error){
-	tx,err := pm.db.Begin(context.Background())
-
-	if err!=nil{
+	if err != nil {
 		return false, nil
 	}
 	defer tx.Rollback(context.Background())
 
-
-	result,err := tx.Exec(context.Background(), "UPDATE product SET stock=$1 WHERE id=$2 AND user_id=$3",
-						stock,productId,user_id)
+	result, err := tx.Exec(context.Background(), "UPDATE product SET stock=$1 WHERE id=$2 AND user_id=$3",
+		stock, productId, user_id)
 
 	if err != nil {
-		return false,err
-    }
+		return false, err
+	}
 
 	rowsAffected := result.RowsAffected()
-    if rowsAffected == 0 {
-        return false,nil
-    }
+	if rowsAffected == 0 {
+		return false, nil
+	}
 
-	
 	err = tx.Commit(context.Background())
 
-	if err!=nil{
+	if err != nil {
 		return false, err
 	}
 
 	return true, nil
 }
 
-
-func (pm *ProductModel) FindById(productId int)(FindByIdResponse,error){
+func (pm *ProductModel) FindById(productId int) (FindByIdResponse, error) {
 	// var seller response.SellerResponse
 	// var product response.ProductResponse
 	var res FindByIdResponse
@@ -328,13 +322,13 @@ func (pm *ProductModel) FindById(productId int)(FindByIdResponse,error){
 	// 		ba.bank_name,
 	// 		ba.account_name,
 	// 		ba.account_number,
-	// 		LEFT JOIN 
+	// 		LEFT JOIN
 	// 			product_tags pt ON p.id = pt.product_id
 	// 		LEFT JOIN
-	// 			user u ON p.user_id = u.id 
+	// 			user u ON p.user_id = u.id
 	// 		LEFT JOIN
-	// 			bankaccounts ba ON u.id = ba.user_id 
-	// `	
+	// 			bankaccounts ba ON u.id = ba.user_id
+	// `
 
 	var query = `
 	SELECT p.id, p.name, p.price, p.imageUrl, p.stock, p.condition, p.isPurchaseable, array_agg(pt.tag) AS tags, 
@@ -343,19 +337,19 @@ func (pm *ProductModel) FindById(productId int)(FindByIdResponse,error){
 	WHERE p.id=$1 AND p.is_deleted = false AND pt.is_deleted=false GROUP BY p.id
 	`
 	err := pm.db.QueryRow(context.Background(), query, productId).Scan(
-				&res.Product.ProductId,
-				&res.Product.Name,
-				&res.Product.Price,
-				&res.Product.ImageURL,
-				&res.Product.Stock,
-				&res.Product.Condition,
-				&res.Product.IsPurchaseable,
-				&res.Product.Tags,
-				&res.Product.PurchaseCount,
+		&res.Product.ProductId,
+		&res.Product.Name,
+		&res.Product.Price,
+		&res.Product.ImageURL,
+		&res.Product.Stock,
+		&res.Product.Condition,
+		&res.Product.IsPurchaseable,
+		&res.Product.Tags,
+		&res.Product.PurchaseCount,
 	)
 
-	if err!=nil{
-		return res,err
+	if err != nil {
+		return res, err
 	}
 
 	query = `SELECT 
@@ -384,29 +378,28 @@ func (pm *ProductModel) FindById(productId int)(FindByIdResponse,error){
 `
 
 	rows, err := pm.db.Query(context.Background(), query, productId)
-	
+
 	if err != nil {
 		log.Fatal(err)
 		return res, err
 	}
 
-
 	defer rows.Close()
-	productSold:=0
+	productSold := 0
 	for rows.Next() {
 		var bank types.GetBankData
-		var user_id,total int 
-		err := rows.Scan(&user_id,&res.Seller.Name,&bank.BankAccountId, &bank.BankName, &bank.BankAccountName, &bank.BankAccountNumber,&total)
+		var user_id, total int
+		err := rows.Scan(&user_id, &res.Seller.Name, &bank.BankAccountId, &bank.BankName, &bank.BankAccountName, &bank.BankAccountNumber, &total)
 		if err != nil {
 			return res, err
 		}
 		res.Seller.BankAccounts = append(res.Seller.BankAccounts, bank)
-		productSold+=total
+		productSold += total
 	}
 	if err := rows.Err(); err != nil {
 		return res, err
 	}
-	res.Seller.ProductSoldTotal=productSold
+	res.Seller.ProductSoldTotal = productSold
 
 	return res, nil
 }
