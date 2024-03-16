@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"github.com/gabriel-tama/be-week-1/models"
 	"github.com/gabriel-tama/be-week-1/types"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 )
 
 type ProductController struct {
@@ -74,9 +76,10 @@ func (pc *ProductController) FindAll(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err})
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "account added sucessfully", "data": products})
+	c.JSON(http.StatusOK, gin.H{"message": "account added sucessfully", "data": products.Products,"meta":products.Meta})
 }
 
 func (pc *ProductController) CreateProduct(c *gin.Context) {
@@ -116,7 +119,7 @@ func (pc *ProductController) CreateProduct(c *gin.Context) {
 }
 
 func (pc *ProductController) UpdateProduct(c *gin.Context) {
-	var product types.ProductCreate
+	var product types.ProductUpdate
 
 	productId, err := strconv.Atoi(c.Param("productId"))
 
@@ -253,5 +256,27 @@ func (pc *ProductController) UpdateStock(c *gin.Context){
 
 	c.JSON(http.StatusOK,gin.H{"message":"stock updated succesfully"})	
 
+
+}
+
+func (pc *ProductController) FindById(c*gin.Context){
+	productId, err := strconv.Atoi(c.Param("productId"))
+
+	if err !=nil{
+		c.JSON(http.StatusNotFound,gin.H{"message":"product not found"})
+		return
+	}
+
+	res,err := pc.productService.FindById(productId)
+
+	if err!=nil{
+		if errors.Is(err,pgx.ErrNoRows){
+			c.JSON(http.StatusBadRequest,gin.H{"message":"produc nt found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError,gin.H{"message":err})
+		return
+	}
+	c.JSON(http.StatusOK,gin.H{"message":"ok bos","data":res.Product,"seller":res.Seller})
 
 }

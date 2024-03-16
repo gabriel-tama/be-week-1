@@ -35,6 +35,7 @@ func main() {
 	userModel := models.NewUserModel(psql.PostgresConn, env.BCRYPT_Salt)
 	bankModel := models.NewBankAccountModel(psql.PostgresConn)
 	productModel := models.NewProductModel(psql.PostgresConn)
+	paymentModel := models.NewPaymentModel(psql.PostgresConn)
 
 	// Initialize services
 	s3Service := services.NewS3Service(env.S3Region, env.S3ID, env.S3Secret, env.S3Bucket, env.S3Url)
@@ -42,11 +43,13 @@ func main() {
 	bankService := services.NewBankService(bankModel)
 	productService := services.NewProductService(productModel)
 	jwtService := services.NewJWTService(secretKey, env.JWTExp)
+	paymentService := services.NewPaymentService(paymentModel)
 
 	// Initialize controllers
 	userController := controllers.NewUserController(userService, jwtService)
 	bankController := controllers.NewBankController(bankService, jwtService)
 	productController := controllers.NewProductController(productService, jwtService)
+	paymentController := controllers.NewPaymentController(paymentService,jwtService)
 	imageController := controllers.NewImageController(jwtService, s3Service)
 
 	// Setup Gin router
@@ -56,6 +59,7 @@ func main() {
 		UserController:    userController,
 		BankController:    bankController,
 		ProductController: productController,
+		PaymentController: paymentController,
 		ImageController:   imageController,
 	})
 

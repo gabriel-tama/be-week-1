@@ -7,10 +7,11 @@ import (
 
 type ProductService interface {
 	Create(user_id int, product types.ProductCreate)(error)
-	Update(user_id int, productId int, product types.ProductCreate)(bool,error)
+	Update(user_id int, productId int, product types.ProductUpdate)(bool,error)
 	Delete(user_id int, productId int)(bool,error)
 	UpdateStock(user_id int, productId int, stock int)(bool,error)
 	FindAll(props models.FindAllProductParams) (models.FindAllProductResponse, error)
+	FindById(product_id int)(models.FindByIdResponse,error)
 }
 
 type productServiceImpl struct {
@@ -30,6 +31,15 @@ func (ps *productServiceImpl) FindAll(porps models.FindAllProductParams) (models
 	return res, nil
 }
 
+func (ps *productServiceImpl) FindById(product_id int) (models.FindByIdResponse, error) {
+	res, err := ps.productModel.FindById(product_id)
+	if err != nil {
+		return models.FindByIdResponse{}, err
+	}
+
+	return res, nil
+}
+
 func (ps *productServiceImpl) Create(user_id int, product types.ProductCreate) error {
 	err := ps.productModel.Create(user_id, product)
 	if err != nil {
@@ -39,7 +49,7 @@ func (ps *productServiceImpl) Create(user_id int, product types.ProductCreate) e
 	return nil
 }
 
-func (ps *productServiceImpl) Update(user_id int, productId int, product types.ProductCreate) (bool, error) {
+func (ps *productServiceImpl) Update(user_id int, productId int, product types.ProductUpdate) (bool, error) {
 	exist, err := ps.productModel.Update(user_id, productId, product)
 	if err != nil {
 		return false, err

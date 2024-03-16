@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 	"github.com/gabriel-tama/be-week-1/api/v1/services"
 	"github.com/gabriel-tama/be-week-1/types"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type PaymentController struct {
@@ -20,6 +22,7 @@ func NewPaymentController(paymentService services.PaymentService, jwtService ser
 }
 
 func (pc *PaymentController) CreatePayment(c *gin.Context) {
+	var pgErr *pgconn.PgError
 	var paymentCreate types.PaymentCreate
 	productId, err := strconv.Atoi(c.Param("productId"))
 
@@ -29,7 +32,6 @@ func (pc *PaymentController) CreatePayment(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&paymentCreate); err != nil {
-		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "required details are missing or invalid"})
 		return
 	}
@@ -39,22 +41,27 @@ func (pc *PaymentController) CreatePayment(c *gin.Context) {
 	const BEARER_SCHEMA = "BEARER "
 	
 	tokenString:= authHeader[len(BEARER_SCHEMA):]
-	
 	userID,err := pc.jwtService.GetUserIDByToken(tokenString)	
+
+	if err!=nil{
+		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
+		return
+	}
+
+	convertedUserID, err := strconv.ParseUint(userID, 10, 64)
 	if err!=nil{
 		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
 		return
 	}
 
-		convertedUserID, err := strconv.ParseUint(userID, 10, 64)
-	if err!=nil{
-		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
-		return
-	}
-
-	exists, err := pc.paymentService.CreatePayment(int(convertedUserID),productId,&paymentCreate)
+	exists, err := pc.paymentService.CreatePayment(int(convertedUserID),productId,paymentCreate)
 
 	if err!=nil{
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "payments details invalid"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError,gin.H{"message":"server error"})
 		return
 	}
