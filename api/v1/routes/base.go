@@ -49,7 +49,7 @@ func SetupRouter(param RouteParam) *gin.Engine {
 	router.Use(gin.Recovery())
 
 	// Setup API version 1 routes
-	v1 := router.Group("/api/v1")
+	v1 := router.Group("/v1")
 	{
 
 		// Setup  routes

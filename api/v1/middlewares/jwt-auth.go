@@ -13,7 +13,7 @@ func AuthorizeJWT(jwtService services.JWTService) gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 
 		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": "unauthorized"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 			return
 		}
 
