@@ -48,6 +48,7 @@ func (uc *UserController) Register(c *gin.Context) {
 	tokenString, err := uc.jwtService.CreateToken(int(data.ID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+		return
 	}
 
 	authResponse := types.AuthResponse{
@@ -85,6 +86,7 @@ func (uc *UserController) Login(c *gin.Context) {
 	tokenString, err := uc.jwtService.CreateToken(int(data.ID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+		return
 	}
 
 	authResponse := types.AuthResponse{

@@ -24,6 +24,7 @@ func AuthorizeJWT(jwtService services.JWTService) gin.HandlerFunc {
 		if err != nil {
 			log.Println(err)
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": "forbidden"})
+			return
 		}
 	}
 }
